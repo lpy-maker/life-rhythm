@@ -8,11 +8,13 @@ export interface Category {
   sort_order: number
 }
 
+export type LogStatus = 'done' | 'undone' | 'none'
+
 export interface DailyLog {
   id: number
   date: string
   category_id: number
-  done: boolean
+  status: LogStatus
   notes: string | null
 }
 

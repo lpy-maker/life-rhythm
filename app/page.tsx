@@ -3,18 +3,18 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { CheckItem } from '@/components/check-item'
 import { getCategories, getDailyLogs, getDailyPlan } from '@/lib/actions'
-import { Category, DailyLog } from '@/lib/types'
+import { Category, DailyLog, LogStatus } from '@/lib/types'
 
 function today() {
   return new Date().toLocaleDateString('sv-SE')
 }
 
-interface L3Item { category: Category; done: boolean }
-interface L2Group { category: Category; done: boolean; children: L3Item[] }
+interface L3Item { category: Category; status: LogStatus }
+interface L2Group { category: Category; status: LogStatus; children: L3Item[] }
 interface L1Section { category: Category; groups: L2Group[] }
 
 function buildTree(categories: Category[], logs: DailyLog[]): L1Section[] {
-  const logMap = new Map(logs.map(l => [l.category_id, l.done]))
+  const logMap = new Map(logs.map(l => [l.category_id, l.status]))
   const l1s = categories.filter(c => c.level === 'L1')
   const l2s = categories.filter(c => c.level === 'L2')
   const l3s = categories.filter(c => c.level === 'L3')
@@ -25,10 +25,10 @@ function buildTree(categories: Category[], logs: DailyLog[]): L1Section[] {
       .filter(l2 => l2.parent_id === l1.id)
       .map(l2 => ({
         category: l2,
-        done: logMap.get(l2.id) ?? false,
+        status: logMap.get(l2.id) ?? 'none',
         children: l3s
           .filter(l3 => l3.parent_id === l2.id)
-          .map(l3 => ({ category: l3, done: logMap.get(l3.id) ?? false })),
+          .map(l3 => ({ category: l3, status: logMap.get(l3.id) ?? 'none' })),
       })),
   }))
 }
@@ -36,7 +36,7 @@ function buildTree(categories: Category[], logs: DailyLog[]): L1Section[] {
 function calcProgress(groups: L2Group[]) {
   const all = groups.flatMap(g => g.children)
   if (all.length === 0) return null
-  const done = all.filter(i => i.done).length
+  const done = all.filter(i => i.status === 'done').length
   return { done, total: all.length }
 }
 
@@ -121,7 +121,7 @@ export default async function HomePage() {
                         date={date}
                         categoryId={group.category.id}
                         label={group.category.name}
-                        done={group.done}
+                        status={group.status}
                       />
                     </div>
                     {group.children.length > 0 && (
@@ -132,7 +132,7 @@ export default async function HomePage() {
                             date={date}
                             categoryId={item.category.id}
                             label={item.category.name}
-                            done={item.done}
+                            status={item.status}
                           />
                         ))}
                       </div>

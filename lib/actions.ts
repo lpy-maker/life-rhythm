@@ -1,7 +1,7 @@
 'use server'
 
 import { supabase } from '@/lib/supabase'
-import { Category, DailyLog, DailyPlan } from '@/lib/types'
+import { Category, DailyLog, DailyPlan, LogStatus } from '@/lib/types'
 import { revalidatePath } from 'next/cache'
 
 // 获取所有分类（构建 L1→L2→L3 树）
@@ -38,16 +38,23 @@ export async function getDailyPlan(date: string): Promise<DailyPlan | null> {
   return data as DailyPlan | null
 }
 
-// 切换某个 category 的打卡状态（L2 或 L3）
-export async function toggleDailyLog(
+// 设置某个 category 的打卡状态和备注（L2 或 L3）
+export async function setDailyLog(
   date: string,
   categoryId: number,
-  currentDone: boolean
+  status: LogStatus,
+  notes?: string
 ): Promise<void> {
   const { error } = await supabase
     .from('daily_log')
     .upsert(
-      { date, category_id: categoryId, done: !currentDone, updated_at: new Date().toISOString() },
+      {
+        date,
+        category_id: categoryId,
+        status,
+        notes: notes ?? null,
+        updated_at: new Date().toISOString(),
+      },
       { onConflict: 'date,category_id' }
     )
 
