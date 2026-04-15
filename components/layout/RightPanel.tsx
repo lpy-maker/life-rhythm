@@ -4,24 +4,41 @@ import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { TaskPill } from '@/components/today/TaskPill'
 import dayjs from 'dayjs'
+import weekOfYear from 'dayjs/plugin/weekOfYear'
 import 'dayjs/locale/zh-cn'
-import type { WeeklyTaskDef, MonthlyTaskDef } from '@/lib/types'
+import type { WeeklyTaskDef, MonthlyTaskDef, WeeklyTaskLog, MonthlyTaskLog } from '@/lib/types'
 
+dayjs.extend(weekOfYear)
 dayjs.locale('zh-cn')
 
 const WEEK_HEADERS = ['日', '一', '二', '三', '四', '五', '六']
 
 interface RightPanelProps {
   date: string
+  weekStart: string
+  month: string
   weeklyTasks: WeeklyTaskDef[]
   monthlyTasks: MonthlyTaskDef[]
+  weeklyLogs: WeeklyTaskLog[]
+  monthlyLogs: MonthlyTaskLog[]
 }
 
-export function RightPanel({ date, weeklyTasks, monthlyTasks }: RightPanelProps) {
+export function RightPanel({
+  date, weekStart, month,
+  weeklyTasks, monthlyTasks,
+  weeklyLogs, monthlyLogs,
+}: RightPanelProps) {
   const router = useRouter()
   const [viewMonth, setViewMonth] = useState(() => dayjs(date).startOf('month'))
   const today = dayjs().format('YYYY-MM-DD')
+
+  const weeklyLogMap  = new Map(weeklyLogs.map(l => [l.task_id, l]))
+  const monthlyLogMap = new Map(monthlyLogs.map(l => [l.task_id, l]))
+
+  const weekNum  = dayjs(date).week()
+  const monthLabel = dayjs(date).format('MMMM')   // e.g. "April"
 
   const cells = useMemo(() => {
     const startDay = viewMonth.startOf('month').day()
@@ -91,7 +108,7 @@ export function RightPanel({ date, weeklyTasks, monthlyTasks }: RightPanelProps)
         {cells.map((day, idx) => {
           if (!day) return <div key={`e${idx}`} className="h-9" />
           const ds = day.format('YYYY-MM-DD')
-          const isToday = ds === today
+          const isToday    = ds === today
           const isSelected = ds === date
           return (
             <button
@@ -120,34 +137,60 @@ export function RightPanel({ date, weeklyTasks, monthlyTasks }: RightPanelProps)
 
       {/* 周待办 */}
       <div className="border-t border-border px-3 py-3 shrink-0">
-        <p className="text-sm font-semibold mb-2">周待办</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-semibold">周待办</p>
+          <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">
+            Week {weekNum}
+          </span>
+        </div>
         {weeklyTasks.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-3">暂无待办事项</p>
         ) : (
           <div className="space-y-1.5">
-            {weeklyTasks.map(t => (
-              <div key={t.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                {t.name}
-              </div>
-            ))}
+            {weeklyTasks.map(t => {
+              const log = weeklyLogMap.get(t.id)
+              return (
+                <TaskPill
+                  key={t.id}
+                  taskId={t.id}
+                  period={weekStart}
+                  taskType="weekly"
+                  label={t.name}
+                  status={log?.status ?? 'none'}
+                  notes={log?.notes ?? null}
+                />
+              )
+            })}
           </div>
         )}
       </div>
 
       {/* 月待办 */}
       <div className="border-t border-border px-3 py-3 shrink-0">
-        <p className="text-sm font-semibold mb-2">月待办</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-semibold">月待办</p>
+          <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">
+            {monthLabel}
+          </span>
+        </div>
         {monthlyTasks.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-3">暂无待办事项</p>
         ) : (
           <div className="space-y-1.5">
-            {monthlyTasks.map(t => (
-              <div key={t.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
-                {t.name}
-              </div>
-            ))}
+            {monthlyTasks.map(t => {
+              const log = monthlyLogMap.get(t.id)
+              return (
+                <TaskPill
+                  key={t.id}
+                  taskId={t.id}
+                  period={month}
+                  taskType="monthly"
+                  label={t.name}
+                  status={log?.status ?? 'none'}
+                  notes={log?.notes ?? null}
+                />
+              )
+            })}
           </div>
         )}
       </div>

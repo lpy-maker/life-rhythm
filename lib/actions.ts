@@ -1,7 +1,7 @@
 'use server'
 
 import { supabase } from '@/lib/supabase'
-import { Category, DailyLog, DailyPlan, LogStatus, WeeklyTaskDef, MonthlyTaskDef } from '@/lib/types'
+import { Category, DailyLog, DailyPlan, LogStatus, WeeklyTaskDef, MonthlyTaskDef, WeeklyTaskLog, MonthlyTaskLog } from '@/lib/types'
 import { revalidatePath } from 'next/cache'
 
 // 获取所有分类（构建 L1→L2→L3 树）
@@ -84,4 +84,62 @@ export async function getMonthlyTasks(): Promise<MonthlyTaskDef[]> {
 
   if (error) throw new Error(error.message)
   return data as MonthlyTaskDef[]
+}
+
+// 获取某周的周待办记录
+export async function getWeeklyTaskLogs(weekStart: string): Promise<WeeklyTaskLog[]> {
+  const { data, error } = await supabase
+    .from('weekly_task_log')
+    .select('*')
+    .eq('week_start', weekStart)
+
+  if (error) throw new Error(error.message)
+  return data as WeeklyTaskLog[]
+}
+
+// 获取某月的月待办记录
+export async function getMonthlyTaskLogs(month: string): Promise<MonthlyTaskLog[]> {
+  const { data, error } = await supabase
+    .from('monthly_task_log')
+    .select('*')
+    .eq('month', month)
+
+  if (error) throw new Error(error.message)
+  return data as MonthlyTaskLog[]
+}
+
+// 设置周待办状态
+export async function setWeeklyTaskLog(
+  taskId: number,
+  weekStart: string,
+  status: LogStatus,
+  notes?: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('weekly_task_log')
+    .upsert(
+      { task_id: taskId, week_start: weekStart, status, notes: notes ?? null },
+      { onConflict: 'task_id,week_start' }
+    )
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
+
+// 设置月待办状态
+export async function setMonthlyTaskLog(
+  taskId: number,
+  month: string,
+  status: LogStatus,
+  notes?: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('monthly_task_log')
+    .upsert(
+      { task_id: taskId, month, status, notes: notes ?? null },
+      { onConflict: 'task_id,month' }
+    )
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
 }

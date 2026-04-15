@@ -40,7 +40,7 @@ export interface WeeklyTaskLog {
   id: number
   task_id: number
   week_start: string
-  done: boolean
+  status: LogStatus
   notes: string | null
 }
 
@@ -55,6 +55,6 @@ export interface MonthlyTaskLog {
   id: number
   task_id: number
   month: string
-  done: boolean
+  status: LogStatus
   notes: string | null
 }

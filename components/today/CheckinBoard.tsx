@@ -48,7 +48,7 @@ export function CheckinBoard({ date, categories, logs }: CheckinBoardProps) {
               {l1.name}
             </h2>
 
-            <div className="flex flex-wrap gap-x-4 gap-y-3">
+            <div className="flex flex-col gap-3">
               {children.map(l2 => {
                 const l2Log  = logMap.get(l2.id)
                 const l3List = l3s.filter(l3 => l3.parent_id === l2.id)

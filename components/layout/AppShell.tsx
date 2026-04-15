@@ -6,18 +6,27 @@ import { cn } from '@/lib/utils'
 import { LeftSidebar } from './LeftSidebar'
 import { RightPanel } from './RightPanel'
 import { TopBar } from './TopBar'
-import type { Category, WeeklyTaskDef, MonthlyTaskDef } from '@/lib/types'
+import type { Category, WeeklyTaskDef, MonthlyTaskDef, WeeklyTaskLog, MonthlyTaskLog } from '@/lib/types'
 
 interface AppShellProps {
   date: string
+  weekStart: string
+  month: string
   categories: Category[]
   weeklyTasks: WeeklyTaskDef[]
   monthlyTasks: MonthlyTaskDef[]
+  weeklyLogs: WeeklyTaskLog[]
+  monthlyLogs: MonthlyTaskLog[]
   children: React.ReactNode
 }
 
-export function AppShell({ date, categories, weeklyTasks, monthlyTasks, children }: AppShellProps) {
-  const [leftOpen, setLeftOpen] = useState(true)
+export function AppShell({
+  date, weekStart, month,
+  categories, weeklyTasks, monthlyTasks,
+  weeklyLogs, monthlyLogs,
+  children,
+}: AppShellProps) {
+  const [leftOpen, setLeftOpen]   = useState(true)
   const [rightOpen, setRightOpen] = useState(true)
 
   return (
@@ -58,7 +67,15 @@ export function AppShell({ date, categories, weeklyTasks, monthlyTasks, children
 
       {/* 右侧面板 */}
       <div className={cn('shrink-0 h-full transition-[width] duration-200', rightOpen ? 'w-[280px]' : 'w-0 overflow-hidden')}>
-        <RightPanel date={date} weeklyTasks={weeklyTasks} monthlyTasks={monthlyTasks} />
+        <RightPanel
+          date={date}
+          weekStart={weekStart}
+          month={month}
+          weeklyTasks={weeklyTasks}
+          monthlyTasks={monthlyTasks}
+          weeklyLogs={weeklyLogs}
+          monthlyLogs={monthlyLogs}
+        />
       </div>
 
     </div>
