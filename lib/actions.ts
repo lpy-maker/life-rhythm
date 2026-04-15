@@ -1,7 +1,7 @@
 'use server'
 
 import { supabase } from '@/lib/supabase'
-import { Category, DailyLog, DailyPlan, LogStatus } from '@/lib/types'
+import { Category, DailyLog, DailyPlan, LogStatus, WeeklyTaskDef, MonthlyTaskDef } from '@/lib/types'
 import { revalidatePath } from 'next/cache'
 
 // 获取所有分类（构建 L1→L2→L3 树）
@@ -60,4 +60,28 @@ export async function setDailyLog(
 
   if (error) throw new Error(error.message)
   revalidatePath('/')
+}
+
+// 获取活跃的周待办定义
+export async function getWeeklyTasks(): Promise<WeeklyTaskDef[]> {
+  const { data, error } = await supabase
+    .from('weekly_task_def')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order')
+
+  if (error) throw new Error(error.message)
+  return data as WeeklyTaskDef[]
+}
+
+// 获取活跃的月待办定义
+export async function getMonthlyTasks(): Promise<MonthlyTaskDef[]> {
+  const { data, error } = await supabase
+    .from('monthly_task_def')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order')
+
+  if (error) throw new Error(error.message)
+  return data as MonthlyTaskDef[]
 }
