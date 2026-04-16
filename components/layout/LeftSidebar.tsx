@@ -1,6 +1,7 @@
 'use client'
 
-import { CheckSquare, Settings, Search, X } from 'lucide-react'
+import { CheckSquare, Settings, Search } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { Category } from '@/lib/types'
 
@@ -9,8 +10,14 @@ interface LeftSidebarProps {
 }
 
 export function LeftSidebar({ categories }: LeftSidebarProps) {
+  const pathname = usePathname()
+  const router   = useRouter()
+
   const l1s = categories.filter(c => c.level === 'L1')
   const l2s = categories.filter(c => c.level === 'L2')
+
+  const isHome     = pathname === '/'
+  const isSettings = pathname === '/settings'
 
   return (
     <aside className="w-full h-full flex flex-col bg-sidebar border-r border-border">
@@ -30,9 +37,17 @@ export function LeftSidebar({ categories }: LeftSidebarProps) {
         </div>
       </div>
 
-      {/* Day Review 导航 */}
-      <nav className="px-2 py-1 shrink-0">
-        <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-left bg-primary/10 text-primary font-medium">
+      {/* 导航 */}
+      <nav className="px-2 py-1 shrink-0 space-y-0.5">
+        <button
+          onClick={() => router.push('/')}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-left',
+            isHome
+              ? 'bg-primary/10 text-primary font-medium'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
           <CheckSquare size={16} />
           Day Review
         </button>
@@ -47,16 +62,11 @@ export function LeftSidebar({ categories }: LeftSidebarProps) {
           const children = l2s.filter(l2 => l2.parent_id === l1.id)
           return (
             <div key={l1.id} className="mb-3">
-              {/* L1 label */}
               <p className="text-xs text-muted-foreground font-medium px-3 py-1">{l1.name}</p>
-              {/* L2 items */}
               {children.map(l2 => (
                 <button
                   key={l2.id}
-                  className={cn(
-                    'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors text-left',
-                    'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  )}
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors text-left text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   <span className="w-2 h-2 rounded-full shrink-0 bg-current opacity-40" />
                   <span className="text-xs">{l2.name}</span>
@@ -69,7 +79,15 @@ export function LeftSidebar({ categories }: LeftSidebarProps) {
 
       {/* 设置 */}
       <div className="px-2 py-2 border-t border-border shrink-0">
-        <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-left text-muted-foreground hover:bg-muted hover:text-foreground">
+        <button
+          onClick={() => router.push('/settings')}
+          className={cn(
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors text-left',
+            isSettings
+              ? 'bg-primary/10 text-primary font-medium'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+        >
           <Settings size={16} />
           设置
         </button>

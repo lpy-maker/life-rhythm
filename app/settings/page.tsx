@@ -1,12 +1,12 @@
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import {
-  getCategories, getDailyLogs, getDailyPlan,
+  getCategories,
   getWeeklyTasks, getMonthlyTasks,
   getWeeklyTaskLogs, getMonthlyTaskLogs,
 } from '@/lib/actions'
 import { AppShell } from '@/components/layout/AppShell'
-import { CheckinBoardSwitcher } from '@/components/today/CheckinBoardSwitcher'
+import { SettingsBoard } from '@/components/settings/SettingsBoard'
 
 dayjs.extend(weekOfYear)
 
@@ -14,22 +14,14 @@ function todayStr() {
   return new Date().toLocaleDateString('sv-SE')
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ date?: string }>
-}) {
-  const sp   = await searchParams
-  const date = sp.date ?? todayStr()
-
+export default async function SettingsPage() {
+  const date      = todayStr()
   const weekStart = dayjs(date).startOf('week').format('YYYY-MM-DD')
   const month     = dayjs(date).format('YYYY-MM')
 
-  const [categories, logs, plan, weeklyTasks, monthlyTasks, weeklyLogs, monthlyLogs] =
+  const [categories, weeklyTasks, monthlyTasks, weeklyLogs, monthlyLogs] =
     await Promise.all([
       getCategories(),
-      getDailyLogs(date),
-      getDailyPlan(date),
       getWeeklyTasks(),
       getMonthlyTasks(),
       getWeeklyTaskLogs(weekStart),
@@ -47,12 +39,7 @@ export default async function HomePage({
       weeklyLogs={weeklyLogs}
       monthlyLogs={monthlyLogs}
     >
-      <CheckinBoardSwitcher
-        date={date}
-        categories={categories}
-        logs={logs}
-        plan={plan}
-      />
+      <SettingsBoard categories={categories} />
     </AppShell>
   )
 }

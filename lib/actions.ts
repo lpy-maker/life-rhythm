@@ -143,3 +143,55 @@ export async function setMonthlyTaskLog(
   if (error) throw new Error(error.message)
   revalidatePath('/')
 }
+
+// ── 分类管理 ──────────────────────────────────────────
+
+// 新增 L2 或 L3
+export async function addCategory(
+  name: string,
+  level: 'L2' | 'L3',
+  parentId: number
+): Promise<void> {
+  const { data: siblings } = await supabase
+    .from('categories')
+    .select('sort_order')
+    .eq('parent_id', parentId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+
+  const maxOrder = (siblings?.[0]?.sort_order ?? 0) as number
+  const code = `${level.toLowerCase()}_${Date.now()}`
+
+  const { error } = await supabase
+    .from('categories')
+    .insert({ name, level, parent_id: parentId, code, sort_order: maxOrder + 1 })
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+  revalidatePath('/settings')
+}
+
+// 重命名（L2 或 L3）
+export async function renameCategory(id: number, name: string): Promise<void> {
+  const { error } = await supabase
+    .from('categories')
+    .update({ name })
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+  revalidatePath('/settings')
+}
+
+// 删除（仅 L3）
+export async function deleteCategory(id: number): Promise<void> {
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', id)
+    .eq('level', 'L3')
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+  revalidatePath('/settings')
+}
